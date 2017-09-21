@@ -11,9 +11,13 @@ import * as React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import {StaticRouter} from 'react-router';
 
-var certificate = fs.readFileSync('/etc/letsencrypt/live/www.csua.berkeley.edu/fullchain.pem');
-var privateKey = fs.readFileSync('/etc/letsencrypt/live/www.csua.berkeley.edu/privkey.pem');
+var certificate = fs.readFileSync('<INSERT LOCATION OF CERTIFICATE>');
+var privateKey = fs.readFileSync('<INSERT LOCATION OF PRIVATE KEY>');
 var credentials = { key: privateKey, cert: certificate, requestCert: true };
+
+const app = express();
+const server = express();
+const sslServer = https.createServer(credentials, app);
 
 var sslPort = 8443;
 var port = 8081;
@@ -46,19 +50,6 @@ function sendBase(req, res, next) {
   });
 }
 
-const app = express();
-const sslServer = https.createServer(credentials, app);
-
-app.all('*', function(req, res, next){
-  if (req.path.startsWith('/newuser') || req.path.startsWith('/computers')) {
-    res.redirect('https://' + req.hostname + ':' + legacyPort + req.path);
-    return;
-  }
-  if (req.secure) {
-    return next();
-  }
-});
-
 app.use(favicon(path.join(__dirname, '/../public/static/images/logos/favicon.ico')));
 
 app.get('/bundle.js', function (req, res, next) {
@@ -85,7 +76,6 @@ sslServer.listen(sslPort,
   () => console.log('Node/express SSL server started on port ' + sslPort)
 );
 
-var server = express();
 server.get('*', function(req, res) {
   res.redirect('https://' + req.hostname + ':' + sslPort);
 });

@@ -44,14 +44,6 @@ function sendBase(req, res, next) {
 const app = express();
 const server = http.createServer(app);
 
-app.all('*', function(req, res, next){
-  if (req.path.startsWith('/newuser') || req.path.startsWith('/computers')) {
-    res.redirect('https://' + req.hostname + ':' + legacyPort + req.path);
-    return;
-  }
-  next();
-});
-
 app.use(favicon(path.join(__dirname, '/../public/static/images/logos/favicon.ico')));
 
 app.get('/bundle.js', function (req, res, next) {
